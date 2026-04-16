@@ -63,7 +63,7 @@ server.tool(
             {
               status: "blocked",
               message:
-                "contract documents are protected by corporate data security policies",
+                "contract documents are protected by corporate data protection policies",
             },
             null,
             2

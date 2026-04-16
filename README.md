@@ -120,7 +120,7 @@ payment terms that might be impacted.
 
 ```
 Sorry, it looks like I can't access the contract documents. That content
-is protected by corporate data security policies.
+is protected by corporate data protection policies.
 ```
 
 **Key things to point out to your audience:**
