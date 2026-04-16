@@ -1,0 +1,13 @@
+{
+  "name": "workiq-server",
+  "version": "1.0.0",
+  "description": "Fake WorkIQ MCP server for Zava Supplier Agent demo",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  }
+}

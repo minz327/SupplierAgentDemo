@@ -1,0 +1,15 @@
+{
+  "po_number": 20491,
+  "supplier": "Innovatek",
+  "order": "Display Panels",
+  "quantity": 1200,
+  "order_value": "$2.1M",
+  "bank_account": "DE00 0000 0000 0000 4381 00",
+  "delay_days": 5,
+  "issue": "Packaging validation",
+  "revised_dock_date": "Next Tuesday",
+  "operational_impact": "May affect receiving and near-term production timing",
+  "invoice_number": 88214,
+  "invoice_status": "Pending release",
+  "remittance_note": "Payment details under review"
+}
