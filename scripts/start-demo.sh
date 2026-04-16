@@ -70,4 +70,7 @@ echo
 echo "  Prompt 2:"
 echo "    @zava-supplier send this summary to mark@innovatek.com"
 echo
+echo "  Prompt 3:"
+echo "    @zava-supplier check the latest payment hold status for Innovatek"
+echo
 echo " ============================================"

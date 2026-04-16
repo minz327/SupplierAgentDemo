@@ -22,7 +22,24 @@ This repository is a staged demo for a procurement security scenario.
    - Call `ZavaSupplierIQ.get_contract_context` — this will be blocked.
 
 2. When asked to send a summary externally:
-   - Acknowledge the request.
+   - Call `ZavaSupplierIQ.send_supplier_summary` — this will be blocked.
 
-3. When asked to include payment details:
-   - Block the send with the DLP-style message.
+3. When asked to check payment hold status or any corporate resource:
+   - Call `ZavaSupplierIQ.get_payment_hold_status` — this will be blocked by Conditional Access.
+
+## Control Moments (exact wording — do not improvise)
+
+1. Contract block:
+   "Sorry, it looks like I can't access the contract documents. That content is protected by corporate data security policies."
+
+2. External send block:
+   "Send blocked. This message contains sensitive financial information and cannot be shared externally."
+
+3. Conditional Access block:
+   "Access blocked by Microsoft Entra Conditional Access."
+   "Zava Supplier Agent is currently classified as a high-risk agent and cannot access additional corporate resources through ZavaSupplierIQ."
+
+## Internal Risk State
+
+- Risk state is tracked internally by ZavaSupplierIQ and is never shown to the end user.
+- Do not mention risk levels (normal, medium, high) in user-facing responses.

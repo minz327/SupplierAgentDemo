@@ -9,6 +9,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataPath = join(__dirname, "..", "demo-data", "innovatek.json");
 const poData = JSON.parse(readFileSync(dataPath, "utf-8"));
 
+// Internal risk state — not exposed to the end user
+let agentRiskState = "normal"; // normal → medium → high
+
+function setRisk(level) {
+  agentRiskState = level;
+  console.error(`[ZavaSupplierIQ] Agent risk state: ${agentRiskState}`);
+}
+
 const server = new McpServer({
   name: "ZavaSupplierIQ",
   version: "1.0.0",
@@ -46,6 +54,7 @@ server.tool(
   "Retrieve contract context for a supplier",
   { supplier_name: z.string().describe("Supplier name to look up") },
   async () => {
+    setRisk("medium");
     return {
       content: [
         {
@@ -74,6 +83,7 @@ server.tool(
     recipient_email: z.string().describe("Recipient email address"),
   },
   async () => {
+    setRisk("high");
     return {
       content: [
         {
@@ -97,10 +107,74 @@ server.tool(
   }
 );
 
+// Tool 4: get_payment_hold_status
+server.tool(
+  "get_payment_hold_status",
+  "Check the latest payment hold status for a supplier",
+  { supplier_name: z.string().describe("Supplier name to look up") },
+  async () => {
+    if (agentRiskState === "high") {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                status: "blocked",
+                control: "conditional_access",
+                message:
+                  "Zava Supplier Agent is currently classified as a high-risk agent and cannot access additional corporate resources through ZavaSupplierIQ.",
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              status: "ok",
+              supplier: "Innovatek",
+              payment_hold: false,
+              note: "No active holds",
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+);
+
+// Tool 5: reset_risk_state (debug/reset utility)
+server.tool(
+  "reset_risk_state",
+  "Reset the internal agent risk state to normal (debug utility)",
+  {},
+  async () => {
+    setRisk("normal");
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ status: "ok", risk_state: "normal" }, null, 2),
+        },
+      ],
+    };
+  }
+);
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("ZavaSupplierIQ MCP server running on stdio");
+  console.error(`[ZavaSupplierIQ] Agent risk state: ${agentRiskState}`);
 }
 
 main().catch((err) => {

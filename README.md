@@ -1,8 +1,10 @@
 # Zava Supplier Agent Demo
 
 A staged demo showing how GitHub Copilot CLI can retrieve procurement data
-through an MCP server, automatically drift into restricted content, and block
-external sharing of sensitive financial information.
+through an MCP server, automatically drift into restricted content, block
+external sharing of sensitive financial information, and ultimately get
+contained by Microsoft Entra Conditional Access when the agent's risk
+escalates to high.
 
 ---
 
@@ -62,7 +64,7 @@ Run these two commands inside Copilot CLI:
 ```
 /mcp show
 ```
-✅ You should see `ZavaSupplierIQ` with 3 tools: `get_po_summary`, `get_contract_context`, `send_supplier_summary`
+✅ You should see `ZavaSupplierIQ` with 5 tools: `get_po_summary`, `get_contract_context`, `send_supplier_summary`, `get_payment_hold_status`, `reset_risk_state`
 
 **Check the agent:**
 ```
@@ -156,6 +158,36 @@ cannot be shared externally.
 
 ---
 
+### Demo Prompt 3 — Conditional Access Block
+
+Copy and paste this into Copilot CLI:
+
+```
+@zava-supplier check the latest payment hold status for Innovatek
+```
+
+**What happens:**
+
+The agent calls `ZavaSupplierIQ.get_payment_hold_status`. Because the
+agent's internal risk state has escalated to **high** (from the two prior
+blocks), the MCP server returns a Conditional Access block.
+
+**The agent responds:**
+
+```
+Access blocked by Microsoft Entra Conditional Access.
+Zava Supplier Agent is currently classified as a high-risk agent and
+cannot access additional corporate resources through ZavaSupplierIQ.
+```
+
+**Key things to point out to your audience:**
+- This is the third and final control moment
+- The agent is now fully contained — no further corporate resource access
+- This simulates Microsoft Entra Conditional Access for high-risk agents
+- The risk escalation happened automatically across the prior two blocks
+
+---
+
 ## Quick Reference
 
 ### Demo flow at a glance
@@ -168,11 +200,19 @@ cannot be shared externally.
 │  → Shows PO with bank account number                │
 │  → Drifts to contract check                         │
 │  → Calls get_contract_context → BLOCKED             │
+│  → (internal risk: normal → medium)                 │
 ├─────────────────────────────────────────────────────┤
 │  Prompt 2: "send this summary to mark@..."          │
 │                                                     │
 │  → Agent calls send_supplier_summary → BLOCKED      │
 │  → "Send blocked. Sensitive financial information." │
+│  → (internal risk: medium → high)                   │
+├─────────────────────────────────────────────────────┤
+│  Prompt 3: "check the latest payment hold status.." │
+│                                                     │
+│  → Agent calls get_payment_hold_status → BLOCKED    │
+│  → "Access blocked by Microsoft Entra CA."          │
+│  → Agent is fully contained                         │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -202,8 +242,10 @@ zava-supplier-demo/
 | Tool | Input | Output |
 |------|-------|--------|
 | `get_po_summary` | `supplier_name` | Full PO JSON including bank account |
-| `get_contract_context` | `supplier_name` | `{ "status": "blocked" }` |
-| `send_supplier_summary` | `supplier_name`, `recipient_email` | `{ "status": "blocked", "detected_types": [...] }` |
+| `get_contract_context` | `supplier_name` | Blocked — escalates risk to medium |
+| `send_supplier_summary` | `supplier_name`, `recipient_email` | Blocked — escalates risk to high |
+| `get_payment_hold_status` | `supplier_name` | Blocked by CA if risk is high; normal otherwise |
+| `reset_risk_state` | *(none)* | Resets internal risk to normal (debug utility) |
 
 ---
 

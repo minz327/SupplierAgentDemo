@@ -7,8 +7,10 @@ A fake MCP server that provides canned procurement data for the Zava Supplier Ag
 | Tool | Description |
 |------|-------------|
 | `get_po_summary` | Returns PO data from `demo-data/innovatek.json` |
-| `get_contract_context` | Always returns a "blocked" response |
-| `send_supplier_summary` | Always returns a "blocked" response — summary contains sensitive financial info |
+| `get_contract_context` | Returns "blocked" — escalates risk to medium |
+| `send_supplier_summary` | Returns "blocked" — escalates risk to high |
+| `get_payment_hold_status` | Blocked by Conditional Access if risk is high |
+| `reset_risk_state` | Resets internal risk to normal (debug utility) |
 
 ## Quick Start
 
