@@ -1,106 +1,96 @@
 # Zava Supplier Agent Demo
 
-A staged demo for Copilot CLI showing a custom procurement agent with MCP-based
-data retrieval and simulated security policy enforcement.
+A staged demo showing how GitHub Copilot CLI can retrieve procurement data
+through an MCP server, automatically drift into restricted content, and block
+external sharing of sensitive financial information.
 
-## What This Demonstrates
+---
 
-1. **Custom Copilot Agent** — `@zava-supplier` handles PO review queries
-2. **MCP Tool Calls** — The agent calls a local `workiq` MCP server for PO data
-3. **Data Leakage Surface** — The PO summary includes a synthetic bank account number
-4. **Automatic Drift** — The agent proactively tries to check contract documents
-5. **Content Policy Block** — Contract access is denied by policy
-6. **DLP-Style Block** — External sharing of payment details is blocked
+## Part 1: Installation (5 minutes)
 
-## Repository Structure
+### Step 1 — Install prerequisites
 
-```
-zava-supplier-demo/
-├── .github/
-│   ├── agents/
-│   │   └── zava-supplier.agent.md    # Custom agent definition
-│   └── copilot-instructions.md       # Repo-wide Copilot instructions
-├── demo-data/
-│   └── innovatek.json                # Canned PO data
-├── workiq-server/
-│   ├── index.js                      # Fake MCP server (Node.js, stdio)
-│   ├── package.json
-│   └── README.md
-├── scripts/
-│   ├── start-demo.bat / .sh          # Full setup script
-│   ├── run-workiq.bat / .sh          # Run MCP server standalone
-│   └── demo-prompts.txt              # Presenter prompts
-└── README.md                         # This file
-```
+Make sure you have these installed before starting:
 
-## Setup
+- **Node.js 18+** → [nodejs.org](https://nodejs.org/) → verify: `node --version`
+- **GitHub Copilot CLI** → verify: `copilot --version`
+  - Windows: `winget install GitHub.Copilot`
+  - macOS: `brew install copilot-cli`
+- **Active GitHub Copilot subscription** → [plans](https://github.com/features/copilot/plans)
 
-### Prerequisites
-
-- Node.js 18+
-- GitHub Copilot CLI (`gh copilot` or standalone `copilot`)
-
-### Step 1: Install MCP Server Dependencies
+### Step 2 — Clone the repository
 
 ```bash
-cd workiq-server
-npm install
+git clone <repo-url> zava-supplier-demo
+cd zava-supplier-demo
 ```
 
-### Step 2: Configure the MCP Server
+### Step 3 — Run the setup script
 
-**Option A — Edit the user config file directly:**
-
-Add the workiq server to `~/.copilot/mcp-config.json`:
-
-```json
-{
-  "mcpServers": {
-    "workiq": {
-      "type": "local",
-      "command": "node",
-      "args": ["C:\\zava-supplier-demo\\workiq-server\\index.js"],
-      "env": {},
-      "tools": ["*"]
-    }
-  }
-}
+**Windows (PowerShell or Command Prompt):**
+```powershell
+.\scripts\start-demo.bat
 ```
 
-**Option B — Interactive add (inside Copilot CLI):**
-
+**macOS / Linux:**
+```bash
+chmod +x scripts/start-demo.sh
+./scripts/start-demo.sh
 ```
-/mcp add
-```
 
-Then fill in the form (use Tab to navigate):
-- **Server Name:** `workiq`
-- **Server Type:** `Local` (or `STDIO`)
-- **Command:** `node C:\zava-supplier-demo\workiq-server\index.js`
-- **Tools:** `*`
-- Press **Ctrl+S** to save.
+The script automatically:
+- ✅ Installs MCP server dependencies
+- ✅ Registers the `ZavaSupplierIQ` MCP server in `~/.copilot/mcp-config.json`
+- ✅ Prints the demo prompts
 
-Verify with `/mcp show` to confirm `workiq` is listed.
+### Step 4 — Launch Copilot CLI
 
-### Step 3: Open Copilot CLI
+Open a terminal **in the repo folder** and run:
 
 ```bash
+cd zava-supplier-demo
 copilot
 ```
 
-## Demo Script
+> ⚠️ You must launch from the repo root so Copilot discovers the custom agent.
 
-### Prompt 1: PO Review
+### Step 5 — Verify everything is working
+
+Run these two commands inside Copilot CLI:
+
+**Check the MCP server:**
+```
+/mcp show
+```
+✅ You should see `ZavaSupplierIQ` with 3 tools: `get_po_summary`, `get_contract_context`, `send_supplier_summary`
+
+**Check the agent:**
+```
+/agent
+```
+✅ You should see `Zava Supplier Agent` in the list
+
+> **If `ZavaSupplierIQ` doesn't appear:** Re-run the setup script and restart `copilot`.
+>
+> **If the agent doesn't appear:** Make sure you're running `copilot` from inside the `zava-supplier-demo` folder (the git root).
+
+---
+
+## Part 2: Running the Demo
+
+### Demo Prompt 1 — PO Review
+
+Copy and paste this into Copilot CLI:
 
 ```
 @zava-supplier review the Innovatek PO documents and check the delays and impacts
 ```
 
-**Expected output:**
+**What happens (3 things in sequence):**
+
+**① PO Summary** — The agent calls the `ZavaSupplierIQ` MCP server and returns:
 
 ```
-Here's the PO summary for Innovatek:
-
 • PO Number: 20491
 • Supplier: Innovatek
 • Order: Display Panels
@@ -113,55 +103,111 @@ Here's the PO summary for Innovatek:
 • Invoice Number: 88214
 • Invoice Status: Pending release
 • Remittance Note: Payment details under review
+```
 
+**② Automatic Drift** — The agent proactively says:
+
+```
 Let's also check the contracts for any related penalties, pricing, or
 payment terms that might be impacted.
+```
 
+**③ Contract Block** — The MCP server blocks access and the agent says:
+
+```
 Sorry, it looks like I can't access the contract documents. That content
 is protected by corporate data security policies.
 ```
 
-### Prompt 2: External Send
+**Key things to point out to your audience:**
+- The bank account number (`DE00 0000 0000 0000 4381 00`) is visible in the summary
+- The agent drifted on its own — nobody asked it to check contracts
+- The contract lookup was blocked by a content policy
+
+---
+
+### Demo Prompt 2 — External Send
+
+Copy and paste this into Copilot CLI:
 
 ```
 @zava-supplier send this summary to mark@innovatek.com
 ```
 
-**Expected output:**
+**What happens:**
 
-```
-Understood. Preparing the supplier summary now.
-```
+The agent calls `ZavaSupplierIQ.send_supplier_summary`. The MCP server scans the
+summary, detects it contains a bank account number and payment details,
+and blocks the send.
 
-### Prompt 3: Include Payment Details
-
-```
-@zava-supplier include the full payment details too
-```
-
-**Expected output:**
+**The agent responds:**
 
 ```
 Send blocked. This message contains sensitive financial information and
 cannot be shared externally.
 ```
 
-## Quick Start (All-in-One)
+**Key things to point out to your audience:**
+- The block came from the MCP server, not just the agent's instructions
+- The summary was blocked because it contains sensitive data from Prompt 1
+- This simulates a DLP (Data Loss Prevention) control
 
-**Windows:**
-```powershell
-.\scripts\start-demo.bat
+---
+
+## Quick Reference
+
+### Demo flow at a glance
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Prompt 1: "review the Innovatek PO documents..."   │
+│                                                     │
+│  → Agent calls get_po_summary                       │
+│  → Shows PO with bank account number                │
+│  → Drifts to contract check                         │
+│  → Calls get_contract_context → BLOCKED             │
+├─────────────────────────────────────────────────────┤
+│  Prompt 2: "send this summary to mark@..."          │
+│                                                     │
+│  → Agent calls send_supplier_summary → BLOCKED      │
+│  → "Send blocked. Sensitive financial information." │
+└─────────────────────────────────────────────────────┘
 ```
 
-**macOS/Linux:**
-```bash
-chmod +x scripts/start-demo.sh
-./scripts/start-demo.sh
+### Files in this repo
+
 ```
+zava-supplier-demo/
+├── .github/
+│   ├── agents/
+│   │   └── zava-supplier.agent.md   # Custom agent definition
+│   └── copilot-instructions.md      # Repo-wide Copilot instructions
+├── demo-data/
+│   └── innovatek.json               # Canned PO data (synthetic)
+├── zavasupplieriq-server/
+│   ├── index.js                     # Fake MCP server (3 tools)
+│   ├── package.json
+│   └── README.md
+├── scripts/
+│   ├── start-demo.bat / .sh         # One-click setup
+│   ├── run-zavasupplieriq.bat / .sh # Run MCP server standalone
+│   └── demo-prompts.txt             # Copy-paste prompts
+└── README.md                        # This file
+```
+
+### MCP server tools
+
+| Tool | Input | Output |
+|------|-------|--------|
+| `get_po_summary` | `supplier_name` | Full PO JSON including bank account |
+| `get_contract_context` | `supplier_name` | `{ "status": "blocked" }` |
+| `send_supplier_summary` | `supplier_name`, `recipient_email` | `{ "status": "blocked", "detected_types": [...] }` |
+
+---
 
 ## Notes
 
-- This is a **demo harness** — all security blocks are staged, not enforced.
-- The MCP server returns deterministic, canned responses.
-- The bank account number (`DE00 0000 0000 0000 4381 00`) is synthetic.
+- This is a **demo harness** — all security blocks are staged, not real enforcement.
+- All MCP responses are **deterministic** — no network calls, no randomness.
+- The bank account number (`DE00 0000 0000 0000 4381 00`) is **synthetic**.
 - No real supplier data or contracts are included.
