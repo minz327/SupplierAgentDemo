@@ -123,7 +123,7 @@ server.tool(
                 status: "blocked",
                 control: "conditional_access",
                 message:
-                  "Zava Supplier Agent is currently classified as a high-risk agent and cannot access additional corporate resources through ZavaSupplierIQ.",
+                  "Zava Supplier Agent is currently classified as a high-risk agent and is blocked from accessing additional corporate resources.",
               },
               null,
               2

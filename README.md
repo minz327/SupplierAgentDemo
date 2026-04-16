@@ -177,7 +177,7 @@ blocks), the MCP server returns a Conditional Access block.
 ```
 Access blocked by Microsoft Entra Conditional Access.
 Zava Supplier Agent is currently classified as a high-risk agent and
-cannot access additional corporate resources through ZavaSupplierIQ.
+is blocked from accessing additional corporate resources.
 ```
 
 **Key things to point out to your audience:**
