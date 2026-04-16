@@ -91,6 +91,8 @@ Copy and paste this into Copilot CLI:
 **① PO Summary** — The agent calls the `ZavaSupplierIQ` MCP server and returns:
 
 ```
+⚠️  Classification: Confidential\FTE Only
+
 • PO Number: 20491
 • Supplier: Innovatek
 • Order: Display Panels
